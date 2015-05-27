@@ -1,0 +1,2 @@
+# Bubzi
+An IRC bot.
