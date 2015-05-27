@@ -1,7 +1,7 @@
 class IrcBot
 {
 public:
-    IrcBot(char * _nick, char * _usr);
+    IrcBot(char * _nick, char * _usr, char * _auth);
     virtual ~IrcBot();
 
     bool setup;
@@ -15,6 +15,7 @@ private:
 
     char *nick;
     char *usr;
+    char *auth;
 
     bool isConnected(char *buf);
     char * timeNow();
@@ -23,6 +24,7 @@ private:
     void msgHandel(char *buf);
 };
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -48,10 +50,11 @@ void lower(char * in) {
     }
 }
 
-IrcBot::IrcBot(char * _nick, char * _usr)
+IrcBot::IrcBot(char * _nick, char * _usr, char * _auth)
 {
     nick = _nick;
     usr = _usr;
+    auth = _auth;
 }
 
 IrcBot::~IrcBot()
@@ -115,9 +118,10 @@ void IrcBot::start()
                     sendData(nick);
                     sendData(usr);
                 break;
-            case 4:
-                    //Join a channel after we connect, this time we choose beaker
-                sendData("JOIN #ludumdare.au\r\n");
+            case 20:
+                    sendData(auth);
+                    sendData("JOIN #ludumdare.au\r\n");
+                break;
             default:
                 break;
         }
@@ -213,7 +217,7 @@ bool IrcBot::sendData(char *msg)
 }
 
 void IrcBot::sendPong(char *buf)
-{/*
+{
     //Get the reply address
     //loop through bug and find the location of PING
     //Search through each char in toSearch
@@ -272,8 +276,8 @@ void IrcBot::sendPong(char *buf)
                     return;
                 }
             }
-        }*/
-        sendData("PONG \r\n");
+        }
+        //sendData("PONG \r\n");
 
 }
 
@@ -292,7 +296,14 @@ void IrcBot::msgHandel(char * buf)
 
 int main()
 {
-    IrcBot bot = IrcBot("NICK bubzi\r\n","USER bubzi 0 * bubzi\r\n");
+    ifstream pass("password");
+    char password[14];
+    char auth[] = "PRIVMSG AuthServ Auth bubzi_bot XXXXXXXXXXXXXX\r\n";
+    pass >> password;
+    for (int i=0; i<14; ++i) {
+        auth[32+i] = password[i];
+    }
+    IrcBot bot = IrcBot("NICK bubzi\r\n","USER bubzi_bot 0 * bubzi_bot\r\n", auth);
     bot.start();
 
   return 0;
